@@ -18,8 +18,8 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
-    with current_app.open_resource('database/schema') as f:
-        db.executescript()
+    with current_app.open_resource('database/schema.sql') as f:
+        db.executescript(f.read().decode('utf-8'))
 
 
 @click.command('init-db')
