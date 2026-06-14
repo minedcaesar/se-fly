@@ -131,6 +131,36 @@ def staff_login():
     return render_template('auth/staff_login.html')
 
 
+@bp.route('/logout', methods=['POST'])
+def logout():
+    db = get_db()
+    if 'session_id' in session:
+        db.execute('UPDATE sessions SET is_active = 0 WHERE id = ?', (session['session_id'],))
+        db.commit()
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('auth.login'))
+
+@bp.route('/account/delete', methods=['GET', 'POST'])
+def delete_account():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    if request.method == 'POST':
+        user_id = session['user_id']
+        db = get_db()
+        db.execute(
+            "UPDATE users SET full_name = 'DELETED', email = ?, "
+            "oauth_token = NULL, dob = NULL, is_active = 0 WHERE id = ?",
+            (f'deleted-{user_id}@fly.local', user_id),
+        )
+        db.execute('UPDATE sessions SET is_active = 0 WHERE user_id = ?', (user_id,))
+        db.commit()
+        session.clear()
+        flash('Your account has been deleted.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/delete_account.html')
+
+
 def _dashboard_for_role(role):
     mapping = {
         'client': 'client.dashboard',
