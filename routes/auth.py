@@ -161,6 +161,23 @@ def delete_account():
     return render_template('auth/delete_account.html')
 
 
+@bp.route('/reauth', methods=['GET', 'POST'])
+def reauth():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        db = get_db()
+        user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        if user and check_password_hash(user['password'] or '', password):
+            session['reauthed'] = True
+            next_url = session.pop('next_url', None)
+            flash('Identity confirmed.', 'success')
+            return redirect(next_url or url_for('auth.staff_login'))
+        flash('Incorrect password.', 'danger')
+    return render_template('auth/reauth.html')
+
+
 def _dashboard_for_role(role):
     mapping = {
         'client': 'client.dashboard',
