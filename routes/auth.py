@@ -18,8 +18,6 @@ def login():
     return render_template('auth/login.html')
 
 
-#mock oauth callback
-
 @bp.route('/oauth/mock', methods=['POST'])
 def oauth_mock():
     email = request.form.get('email', '').strip().lower()
@@ -32,6 +30,9 @@ def oauth_mock():
     user = db.execute("SELECT * FROM users WHERE email = ? AND role = 'client'",
                       (email,)).fetchone()
     if user is None:
+        if not name:
+            session['pending_oauth_email'] = email
+            return redirect(url_for('auth.register'))
         db.execute(
             "INSERT INTO users (role, full_name, email, oauth_token, is_active) "
             "VALUES ('client', ?, ?, 'mock-oauth-token', 1)",
@@ -54,6 +55,48 @@ def oauth_mock():
     session['full_name'] = user['full_name']
     session['session_id'] = session_id
     return redirect(url_for('client.dashboard'))
+
+
+@bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form.get('email', session.pop('pending_oauth_email', '')).strip().lower()
+        full_name = request.form.get('full_name', '').strip()
+        dob = request.form.get('dob', '').strip()
+        if not full_name or not email:
+            flash('Name and email are required.', 'danger')
+            return render_template('auth/register.html', email=email)
+
+        db = get_db()
+        if db.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone():
+            flash('An account with that email already exists. Please log in.', 'warning')
+            return redirect(url_for('auth.login'))
+
+        db.execute(
+            "INSERT INTO users (role, full_name, email, dob, oauth_token, is_active) "
+            "VALUES ('client', ?, ?, ?, 'mock-oauth-token', 1)",
+            (full_name, email, dob),
+        )
+        db.commit()
+        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+
+        session_id = str(uuid.uuid4())
+        db.execute(
+            'INSERT INTO sessions (id, user_id, device_id, login_timestamp, is_active) '
+            'VALUES (?, ?, ?, ?, 1)',
+            (session_id, user['id'], request.headers.get('User-Agent', ''),
+             datetime.now().isoformat()),
+        )
+        db.commit()
+        session.clear()
+        session['user_id'] = user['id']
+        session['role'] = user['role']
+        session['full_name'] = user['full_name']
+        session['session_id'] = session_id
+        flash('Account created. Welcome!', 'success')
+        return redirect(url_for('client.dashboard'))
+
+    return render_template('auth/register.html', email=session.get('pending_oauth_email', ''))
 
 
 def _dashboard_for_role(role):
