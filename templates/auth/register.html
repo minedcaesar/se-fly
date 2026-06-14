@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Create Account{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h2>Complete your profile</h2>
+  <form action="{{ url_for('auth.register') }}" method="post">
+    <label>Email
+      <input type="email" name="email" value="{{ email }}" required>
+    </label>
+    <label>Full name
+      <input type="text" name="full_name" required>
+    </label>
+    <label>Date of birth
+      <input type="date" name="dob">
+    </label>
+    <button class="btn" type="submit">Create account</button>
+  </form>
+</div>
+{% endblock %}
