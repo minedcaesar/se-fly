@@ -1,9 +1,11 @@
 # routes facing the clients (dashboard, airport info)
 
-from flask import Blueprint, render_template, current_app
+from flask import (Blueprint, flash, redirect, render_template, request, session, url_for, current_app)
 
 from database.db import get_db
-from routes import login_required
+from routes import login_required, role_required
+
+from datetime import datetime
 
 bp = Blueprint('client', __name__)
 
@@ -38,3 +40,34 @@ def flights():
         'WHERE fs.destination = ? ORDER BY fi.scheduled_arrival_time', (iata,),
     ).fetchall()
     return render_template('client/flights.html', departures=departures, arrivals=arrivals)
+
+
+@bp.route('/amenities', methods=['GET', 'POST'])
+@login_required
+@role_required('client')
+def amenities():
+    db = get_db()
+    if request.method == 'POST':
+        amenity_id = request.form.get('amenity_id')
+        amenity = db.execute('SELECT * FROM amenities WHERE id = ? AND is_active = 1',
+                             (amenity_id,)).fetchone()
+        if amenity is None:
+            flash('Amenity not found.', 'danger')
+            return redirect(url_for('client.amenities'))
+        db.execute(
+            'INSERT INTO amenity_purchases (user_id, amenity_id, status, purchased_at) '
+            'VALUES (?, ?, ?, ?)',
+            (session['user_id'], amenity_id, 'pending', datetime.now().isoformat()),
+        )
+        db.commit()
+        # hands off to payment provider, then redirects to url
+        return redirect(url_for('client.mock_payment', amenity_id=amenity_id))
+    items = db.execute('SELECT * FROM amenities WHERE is_active = 1').fetchall()
+    return render_template('client/amenities.html', amenities=items)
+
+# placeholder; will fix later
+@bp.route('/mock-payment')
+@login_required
+def mock_payment():
+    flash('Mock payment not implemented yet.', 'info')
+    return redirect(url_for('client.amenities'))
