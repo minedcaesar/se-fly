@@ -80,3 +80,26 @@ def mock_payment():
         db.commit()
     flash('Payment confirmed! Enjoy your amenity.', 'success')
     return redirect(url_for('client.amenities'))
+
+
+@bp.route('/assistance', methods=['GET', 'POST'])
+@login_required
+@role_required('client')
+def assistance():
+    if request.method == 'POST':
+        a_type = request.form.get('type', '').strip()
+        flight_num = request.form.get('flight_num', '').strip()
+        if not a_type or not flight_num:
+            flash('All fields are required.', 'danger')
+            return redirect(url_for('client.assistance'))
+        db = get_db()
+        db.execute(
+            'INSERT INTO assistance_requests (user_id, type, flight_num, is_fulfilled, created_at) '
+            'VALUES (?, ?, ?, 0, ?)',
+            (session['user_id'], a_type, flight_num, datetime.now().isoformat()),
+        )
+        db.commit()
+        flash('Assistance request submitted.', 'success')
+        return redirect(url_for('client.dashboard'))
+    types = ['WheelchairService', 'PriorityBoarding', 'UnaccompaniedMinor']
+    return render_template('client/assistance.html', assistance_types=types)
