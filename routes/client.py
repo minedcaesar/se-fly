@@ -65,9 +65,18 @@ def amenities():
     items = db.execute('SELECT * FROM amenities WHERE is_active = 1').fetchall()
     return render_template('client/amenities.html', amenities=items)
 
-# placeholder; will fix later
+
 @bp.route('/mock-payment')
 @login_required
 def mock_payment():
-    flash('Mock payment not implemented yet.', 'info')
+    amenity_id = request.args.get('amenity_id')
+    db = get_db()
+    if amenity_id:
+        db.execute(
+            "UPDATE amenity_purchases SET status = 'confirmed' "
+            "WHERE user_id = ? AND amenity_id = ? AND status = 'pending'",
+            (session['user_id'], amenity_id),
+        )
+        db.commit()
+    flash('Payment confirmed! Enjoy your amenity.', 'success')
     return redirect(url_for('client.amenities'))
