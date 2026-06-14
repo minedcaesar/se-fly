@@ -1,3 +1,4 @@
+
 import uuid
 from datetime import datetime
 
@@ -41,19 +42,7 @@ def oauth_mock():
         db.commit()
         user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
-    session_id = str(uuid.uuid4())
-    db.execute(
-        'INSERT INTO sessions (id, user_id, device_id, login_timestamp, is_active) '
-        'VALUES (?, ?, ?, ?, 1)',
-        (session_id, user['id'], request.headers.get('User-Agent', ''),
-         datetime.now().isoformat()),
-    )
-    db.commit()
-    session.clear()
-    session['user_id'] = user['id']
-    session['role'] = user['role']
-    session['full_name'] = user['full_name']
-    session['session_id'] = session_id
+    _create_session(db, user)
     return redirect(url_for('client.dashboard'))
 
 
@@ -79,20 +68,7 @@ def register():
         )
         db.commit()
         user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-
-        session_id = str(uuid.uuid4())
-        db.execute(
-            'INSERT INTO sessions (id, user_id, device_id, login_timestamp, is_active) '
-            'VALUES (?, ?, ?, ?, 1)',
-            (session_id, user['id'], request.headers.get('User-Agent', ''),
-             datetime.now().isoformat()),
-        )
-        db.commit()
-        session.clear()
-        session['user_id'] = user['id']
-        session['role'] = user['role']
-        session['full_name'] = user['full_name']
-        session['session_id'] = session_id
+        _create_session(db, user)
         flash('Account created. Welcome!', 'success')
         return redirect(url_for('client.dashboard'))
 
@@ -113,19 +89,7 @@ def staff_login():
             flash('Incorrect email or password.', 'danger')
             return render_template('auth/staff_login.html')
 
-        session_id = str(uuid.uuid4())
-        db.execute(
-            'INSERT INTO sessions (id, user_id, device_id, login_timestamp, is_active) '
-            'VALUES (?, ?, ?, ?, 1)',
-            (session_id, user['id'], request.headers.get('User-Agent', ''),
-             datetime.now().isoformat()),
-        )
-        db.commit()
-        session.clear()
-        session['user_id'] = user['id']
-        session['role'] = user['role']
-        session['full_name'] = user['full_name']
-        session['session_id'] = session_id
+        _create_session(db, user)
         return redirect(_dashboard_for_role(user['role']))
 
     return render_template('auth/staff_login.html')
@@ -140,6 +104,7 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
+
 
 @bp.route('/account/delete', methods=['GET', 'POST'])
 def delete_account():
@@ -176,6 +141,23 @@ def reauth():
             return redirect(next_url or url_for('auth.staff_login'))
         flash('Incorrect password.', 'danger')
     return render_template('auth/reauth.html')
+
+
+def _create_session(db, user):
+    db.execute('UPDATE sessions SET is_active = 0 WHERE user_id = ?', (user['id'],))
+    session_id = str(uuid.uuid4())
+    db.execute(
+        'INSERT INTO sessions (id, user_id, device_id, login_timestamp, is_active) '
+        'VALUES (?, ?, ?, ?, 1)',
+        (session_id, user['id'], request.headers.get('User-Agent', ''),
+         datetime.now().isoformat()),
+    )
+    db.commit()
+    session.clear()
+    session['user_id'] = user['id']
+    session['role'] = user['role']
+    session['full_name'] = user['full_name']
+    session['session_id'] = session_id
 
 
 def _dashboard_for_role(role):
