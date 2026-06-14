@@ -5,6 +5,7 @@ from flask import (
     Blueprint, flash, redirect, render_template,
     request, session, url_for,
 )
+from werkzeug.security import check_password_hash
 
 from database.db import get_db
 
@@ -16,7 +17,6 @@ def login():
     if 'user_id' in session:
         return redirect(_dashboard_for_role(session.get('role', '')))
     return render_template('auth/login.html')
-
 
 @bp.route('/oauth/mock', methods=['POST'])
 def oauth_mock():
@@ -97,6 +97,38 @@ def register():
         return redirect(url_for('client.dashboard'))
 
     return render_template('auth/register.html', email=session.get('pending_oauth_email', ''))
+
+
+@bp.route('/staff/login', methods=['GET', 'POST'])
+def staff_login():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM users WHERE email = ? AND role != 'client' AND is_active = 1",
+            (email,),
+        ).fetchone()
+        if user is None or not check_password_hash(user['password'] or '', password):
+            flash('Incorrect email or password.', 'danger')
+            return render_template('auth/staff_login.html')
+
+        session_id = str(uuid.uuid4())
+        db.execute(
+            'INSERT INTO sessions (id, user_id, device_id, login_timestamp, is_active) '
+            'VALUES (?, ?, ?, ?, 1)',
+            (session_id, user['id'], request.headers.get('User-Agent', ''),
+             datetime.now().isoformat()),
+        )
+        db.commit()
+        session.clear()
+        session['user_id'] = user['id']
+        session['role'] = user['role']
+        session['full_name'] = user['full_name']
+        session['session_id'] = session_id
+        return redirect(_dashboard_for_role(user['role']))
+
+    return render_template('auth/staff_login.html')
 
 
 def _dashboard_for_role(role):
