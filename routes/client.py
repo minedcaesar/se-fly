@@ -103,3 +103,24 @@ def assistance():
         return redirect(url_for('client.dashboard'))
     types = ['WheelchairService', 'PriorityBoarding', 'UnaccompaniedMinor']
     return render_template('client/assistance.html', assistance_types=types)
+
+
+@bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+@role_required('client')
+def profile():
+    db = get_db()
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        dob = request.form.get('dob', '').strip()
+        if not full_name:
+            flash('Name cannot be empty.', 'danger')
+            return redirect(url_for('client.profile'))
+        db.execute('UPDATE users SET full_name = ?, dob = ? WHERE id = ?',
+                   (full_name, dob, session['user_id']))
+        db.commit()
+        session['full_name'] = full_name
+        flash('Profile updated.', 'success')
+        return redirect(url_for('client.profile'))
+    user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    return render_template('client/profile.html', user=user)
