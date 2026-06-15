@@ -18,6 +18,15 @@
     <td>{{ u['email'] }}</td>
     <td>{{ u['role'] }}</td>
     <td>{{ u['airline'] or '—' }}</td>
+    <td>
+
+      <!-- account deletion  -->
+      {% if u['id'] != session.user_id %}
+      <form action="{{ url_for('admin.delete_staff', user_id=u['id']) }}" method="post">
+        <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+      </form>
+      {% endif %}
+    </td>
   </tr>
   {% endfor %}
 </table>

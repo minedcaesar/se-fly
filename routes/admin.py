@@ -71,3 +71,37 @@ def create_staff():
     # load airline options for the form
     airlines = db.execute('SELECT name FROM airlines').fetchall()
     return render_template('admin/create_staff.html', roles=STAFF_ROLES, airlines=airlines)
+
+
+@bp.route('/staff/<int:user_id>/delete', methods=['POST'])
+@role_required('admin')
+def delete_staff(user_id):
+    db = get_db()
+
+    # retrieve target account
+    user = db.execute('SELECT * FROM users WHERE id = ? AND is_active = 1', (user_id,)).fetchone()
+
+    # check that the account does in fact exists
+    if user is None:
+        flash('User not found.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    # stop administrators from deleting their own account
+    if user_id == session['user_id']:
+        flash('You cannot delete your own account from here.', 'danger')
+        return redirect(url_for('admin.dashboard'))
+
+    # anonymise + deactivate the selected account
+    db.execute(
+        "UPDATE users SET full_name = 'DELETED', email = ?, password = NULL, "
+        "airline = NULL, terminal = NULL, is_active = 0 WHERE id = ?",
+        (f'deleted-{user_id}@fly.local', user_id),
+    )
+
+    # invalidate any active sessions of the deleted account
+    db.execute('UPDATE sessions SET is_active = 0 WHERE user_id = ?', (user_id,))
+
+    # commit account removal changes
+    db.commit()
+    flash('Staff account deleted and data anonymised.', 'success')
+    return redirect(url_for('admin.dashboard'))
