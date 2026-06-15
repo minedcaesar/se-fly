@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Shifts{% endblock %}
+{% block content %}
+<h1>Shift roster</h1>
+{% if shifts %}
+<table>
+    <tr>
+        <th>Staff</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Terminal</th>
+    </tr>
+    {% for s in shifts %}
+    <tr>
+        <td>{{ s['full_name'] or '—' }}</td>
+        <td>{{ s['start_time'] }}</td>
+        <td>{{ s['end_time'] }}</td>
+        <td>{{ s['terminal'] or '—' }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p class="empty">No shifts scheduled.</p>
+{% endif %}
+{% endblock %}

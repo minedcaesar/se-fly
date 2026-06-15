@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Accountability Logs{% endblock %}
+{% block content %}
+<h1>Accountability log</h1>
+{% if logs %}
+<table>
+    <tr>
+        <th>When</th>
+        <th>Manager</th>
+        <th>Staff</th>
+        <th>Reason</th>
+    </tr>
+    {% for l in logs %}
+    <tr>
+        <td>{{ l['timestamp'] }}</td>
+        <td>{{ l['manager_name'] or '—' }}</td>
+        <td>{{ l['staff_name'] or '—' }}</td>
+        <td>{{ l['reason_for_change'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p class="empty">Nothing logged yet.</p>
+{% endif %}
+{% endblock %}
