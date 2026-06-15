@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Airport Info{% endblock %}
+{% block content %}
+<h1>Airport information</h1>
+{% if content %}
+  {% for key, row in content.items() %}
+    <div class="card" style="margin-bottom:1rem">
+      <h3>{{ key|capitalize }}</h3>
+      <p>{{ row['content'] }}</p>
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="empty">No information published yet.</p>
+{% endif %}
+{% endblock %}

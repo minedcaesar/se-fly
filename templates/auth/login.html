@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Log In{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h2>Log in</h2>
+
+  <form action="{{ url_for('auth.oauth_mock') }}" method="post">
+    <label>Email
+      <input type="email" name="email" required>
+    </label>
+    <label>Name (first time only)
+      <input type="text" name="full_name">
+    </label>
+    <button class="btn" type="submit">Continue with Google (mock)</button>
+  </form>
+
+  <p class="form-footer">
+    Staff member? <a href="{{ url_for('auth.staff_login') }}">Log in here</a>.
+  </p>
+</div>
+{% endblock %}
+
