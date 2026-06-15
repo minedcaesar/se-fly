@@ -2,8 +2,12 @@
 {% block title %}Airport Info{% endblock %}
 {% block content %}
 <h1>Airport information</h1>
+
+<!-- display published airport information -->
 {% if content %}
   {% for key, row in content.items() %}
+
+    <!-- one information card per category -->
     <div class="card" style="margin-bottom:1rem">
       <h3>{{ key|capitalize }}</h3>
       <p>{{ row['content'] }}</p>
