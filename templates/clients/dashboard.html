@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Welcome, {{ session.full_name }}</h1>
+<div class="card-grid">
+  <a class="card" href="{{ url_for('client.flights') }}"><h3>Flights</h3><p>Live departures & arrivals.</p></a>
+  <a class="card" href="{{ url_for('client.info') }}"><h3>Airport Info</h3><p>Map, parking, regulations.</p></a>
+  <a class="card" href="{{ url_for('client.amenities') }}"><h3>Amenities</h3><p>Fast-track, lounge and more.</p></a>
+  <a class="card" href="{{ url_for('client.assistance') }}"><h3>Assistance</h3><p>Request special assistance.</p></a>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h2>My profile</h2>
+  <form action="{{ url_for('client.profile') }}" method="post">
+    <label>Full name
+      <input type="text" name="full_name" value="{{ user['full_name'] }}" required>
+    </label>
+    <label>Date of birth
+      <input type="date" name="dob" value="{{ user['dob'] or '' }}">
+    </label>
+    <label>Email
+      <input type="email" value="{{ user['email'] }}" disabled>
+    </label>
+    <button class="btn" type="submit">Save</button>
+  </form>
+  <p class="form-footer">
+    <a href="{{ url_for('auth.delete_account') }}">Delete my account</a>
+  </p>
+</div>
+{% endblock %}

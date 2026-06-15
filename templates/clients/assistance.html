@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Request Assistance{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h2>Request special assistance</h2>
+  <form action="{{ url_for('client.assistance') }}" method="post">
+    <label>Type
+      <select name="type" required>
+        {% for t in assistance_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Flight number
+      <input type="text" name="flight_num" required>
+    </label>
+    <button class="btn" type="submit">Submit request</button>
+  </form>
+</div>
+{% endblock %}

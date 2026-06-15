@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Flights{% endblock %}
+{% block content %}
+<h1>Flight board</h1>
+
+<h2>Departures</h2>
+{% if departures %}
+<table>
+  <tr><th>Flight</th><th>To</th><th>Scheduled</th><th>Status</th></tr>
+  {% for f in departures %}
+  <tr>
+    <td>{{ f['flight_number'] }}</td>
+    <td>{{ f['destination'] }}</td>
+    <td>{{ f['scheduled_departure_time'] }}</td>
+    <td><span class="badge badge-{{ f['status']|lower }}">{{ f['status'] }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No departures.</p>{% endif %}
+
+<h2>Arrivals</h2>
+{% if arrivals %}
+<table>
+  <tr><th>Flight</th><th>From</th><th>Scheduled</th><th>Status</th></tr>
+  {% for f in arrivals %}
+  <tr>
+    <td>{{ f['flight_number'] }}</td>
+    <td>{{ f['origin'] }}</td>
+    <td>{{ f['scheduled_arrival_time'] }}</td>
+    <td><span class="badge badge-{{ f['status']|lower }}">{{ f['status'] }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No arrivals.</p>{% endif %}
+{% endblock %}
