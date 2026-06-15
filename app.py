@@ -12,6 +12,7 @@ def create_app():
     init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(client_bp)
+    app.register_blueprint(ground_bp)
     return app
 
 

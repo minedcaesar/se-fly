@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Weather{% endblock %}
+{% block content %}
+<h1>Weather forecast</h1>
+<p class="note">Mocked data — production reads OpenWeatherMap via WeatherForecastAPI.</p>
+<div class="card-grid">
+    {% for d in forecast %}
+    <div class="card weather-card">
+        <h3>{{ d['day'] }}</h3>
+        <p class="temp">{{ d['temp'] }}°C</p>
+        <p>{{ d['desc'] }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

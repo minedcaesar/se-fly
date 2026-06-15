@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Ground Home{% endblock %}
+{% block content %}
+<h1>Ground operations</h1>
+<div class="card-grid">
+    <a class="card" href="{{ url_for('ground.weather') }}">
+        <h3>Weather</h3>
+        <p>5-day forecast.</p>
+    </a>
+    
+    <a class="card" href="{{ url_for('ground.shifts') }}">
+        <h3>Shifts</h3>
+        <p>Roster.</p>
+    </a>
+    
+    {% if session.role in ('ground_op_manager', 'shift_manager') %}
+    <a class="card" href="{{ url_for('ground.accountability_logs') }}">
+        <h3>Accountability logs</h3>
+        <p>Decision history.</p>
+    </a>
+    {% endif %}
+    
+    {% if session.role == 'ground_op_manager' %}
+    <a class="card" href="{{ url_for('ground.move_aircraft') }}">
+        <h3>Move aircraft</h3>
+        <p>Reassign a gate.</p>
+    </a>
+
+    {% endif %}
+</div>
+{% endblock %}
