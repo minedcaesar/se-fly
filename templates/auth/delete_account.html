@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Delete Account{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h2>Delete your account</h2>
+  <p class="warning-text">
+    This anonymises your personal data and deactivates the account. It can't be undone.
+  </p>
+  <form action="{{ url_for('auth.delete_account') }}" method="post">
+    <button class="btn btn-danger" type="submit">Delete my account</button>
+    <a class="btn btn-secondary" href="{{ url_for('client.dashboard') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}
