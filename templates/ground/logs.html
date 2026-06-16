@@ -1,0 +1,43 @@
+{# Inherit global structural layouts (like navigation and panels) from the parent template #}
+{% extends 'base.html' %}
+
+{# Dynamically assign the browser tab or window title #}
+{% block title %}Accountability Logs{% endblock %}
+
+{# Inject the accountability logs layout segment into the parent content block #}
+{% block content %}
+<h1>Accountability log</h1>
+
+{# Check if any operational management changes are present in the dataset #}
+{% if logs %}
+<table>
+    {# Table headers defining the properties of authorization tracking #}
+    <tr>
+        <th>When</th>
+        <th>Manager</th>
+        <th>Staff</th>
+        <th>Reason</th>
+    </tr>
+    {% for l in logs %}
+
+    {# Cycle through each configuration log row object parsed by the backend query #}
+    <tr>
+        {# Display the structured action timestamp value #}
+        <td>{{ l['timestamp'] }}</td>
+
+        {# Render the full name of the manager authorizing the shift or aircraft change, falling back to '-' if empty #}
+        <td>{{ l['manager_name'] or '—' }}</td>
+
+        {# Render the full name of the staff crew member executed in the log history, falling back to '-' if empty #}
+        <td>{{ l['staff_name'] or '—' }}</td>
+
+        {# Display the comprehensive text string explaining why this specific operational state changed #}
+        <td>{{ l['reason_for_change'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+{# Fallback view: Rendered on screen when the management audit database evaluation contains no records #}
+<p class="empty">Nothing logged yet.</p>
+{% endif %}
+{% endblock %}

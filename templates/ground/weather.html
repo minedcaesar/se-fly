@@ -1,0 +1,34 @@
+{# Inherit global presentation layouts (headers, footers, body blocks) from the base template #}
+{% extends 'base.html' %}
+
+{# Dynamically set the browser window or tab title #}
+{% block title %}Weather{% endblock %}
+
+{# Inject the weather forecast elements into the parent layout's content block #}
+{% block content %}
+<h1>Weather forecast</h1>
+
+{# Contextual notice clarifying the deployment status of the weather API system integration #}
+<p class="note">Mocked data — production reads OpenWeatherMap via WeatherForecastAPI.</p>
+
+{# Layout grid holding individual daily forecast cards side-by-side #}
+<div class="card-grid">
+
+    {# Iterate through the list of dictionary objects passed by the backend route function #}
+    {% for d in forecast %}
+
+    {# Individual block layout displaying a single day's meteorological state #}
+    <div class="card weather-card">
+
+        {# Print the abbreviated day string (e.g., Mon, Tue) #}
+        <h3>{{ d['day'] }}</h3>
+
+        {# Render the integer temperature value alongside the metric Celsius unit indicator #}
+        <p class="temp">{{ d['temp'] }}°C</p>
+
+        {# Output the general weather condition text string (e.g., Clear, Rain, Sunny) #}
+        <p>{{ d['desc'] }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
