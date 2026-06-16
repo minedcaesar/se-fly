@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['cancelled_0',['CANCELLED',['../classenums_1_1_flight_status.html#a45ac27edb016619e93656bb2d15894f4',1,'enums::FlightStatus']]],
+  ['cityserviceprovider_1',['CityServiceProvider',['../classexternal_1_1_city_service_provider.html',1,'external']]],
+  ['client_2',['Client',['../classuser_1_1_client.html',1,'user']]],
+  ['client_2epy_3',['client.py',['../client_8py.html',1,'']]],
+  ['close_5fdb_4',['close_db',['../namespacedb.html#ad86321ee49a748924ac5f854a66e8729',1,'db']]],
+  ['communicate_5fshifts_5',['communicate_shifts',['../namespaceroutes_1_1ground.html#a98c30f4f32eab0b7f368f5cd6be8e7a4',1,'routes::ground']]],
+  ['communicateshifts_6',['communicateShifts',['../classuser_1_1_shift_schedule_manager.html#a9d32f9a47484b51e143f70df2ca37710',1,'user::ShiftScheduleManager']]],
+  ['completed_7',['COMPLETED',['../classenums_1_1_task_status.html#a1a55b27b276356f46c83881ddebad5f3',1,'enums::TaskStatus']]],
+  ['config_8',['Config',['../classconfig_1_1_config.html',1,'config']]],
+  ['config_9',['config',['../namespaceconfig.html',1,'']]],
+  ['config_2epy_10',['config.py',['../config_8py.html',1,'']]],
+  ['create_5fapp_11',['create_app',['../namespaceapp.html#aac44c8bda87115cb78ea9710723afb59',1,'app']]],
+  ['create_5fstaff_12',['create_staff',['../namespaceroutes_1_1admin.html#adc04b754c61a2345a64f71896b8797b0',1,'routes::admin']]],
+  ['createaccount_13',['createAccount',['../classuser_1_1_unregistered_client.html#a8ff9b1ae5e5fa1f44609bc6aedc55840',1,'user::UnregisteredClient']]],
+  ['createoperationplan_14',['createOperationPlan',['../classuser_1_1_ground_operation_manager.html#abd20b9b3e3401d5a685f23c4e57bf3ad',1,'user::GroundOperationManager']]],
+  ['createstaffaccount_15',['createStaffAccount',['../classuser_1_1_system_admin.html#aa285bed51969f02049d1dc88bf4e76f2',1,'user::SystemAdmin']]]
+];
