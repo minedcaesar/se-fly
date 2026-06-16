@@ -2,12 +2,18 @@
 {% block title %}Amenities{% endblock %}
 {% block content %}
 <h1>Amenities</h1>
+
+<!-- display available airport amenities -->
 {% if amenities %}
 <div class="card-grid">
+
+  <!-- one purchase card each amenity -->
   {% for a in amenities %}
   <div class="card">
     <h3>{{ a['name'] }}</h3>
     <p class="price">€{{ '%.2f'|format(a['price']) }}</p>
+
+    <!-- form to submit purchase-->
     <form action="{{ url_for('client.amenities') }}" method="post">
       <input type="hidden" name="amenity_id" value="{{ a['id'] }}">
       <button class="btn" type="submit">Buy</button>
