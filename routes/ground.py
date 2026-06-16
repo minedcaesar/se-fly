@@ -10,7 +10,7 @@
 # Reassigning personnel to different tasks as needed
 # UC18 - Plan Resources
 # Planning resources and tasks in advance
-# UC19 - Communicate Ahifts 
+# UC19 - Communicate Shifts 
 # Communicating shifts to the system to organise the tasks
 # UC20 - View Accountability Logs
 # Keeps track of the user that made a modification to ensure accountability
