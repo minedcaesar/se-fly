@@ -1,44 +1,18 @@
-{# Inherit global presentation layouts (headers, footers, blocks) from the base layout #}
 {% extends 'base.html' %}
-
-{# Dynamically set the browser window or tab title #}
 {% block title %}Shifts{% endblock %}
-
-{# Inject the roster visualization into the parent content block #}
 {% block content %}
 <h1>Shift roster</h1>
-
-{# Evaluate if the incoming datasets contain active ground handling shift profiles #}
 {% if shifts %}
 <table>
-
-    {# Table headers defining details needed for duty tracking #}
-    <tr>
-        <th>Staff</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Terminal</th>
-    </tr>
-    {% for s in shifts %}
-
-    {# Loop through each shift record object provided from the database handler #}
-    <tr>
-        {# Display the full name of the assigned staff member, falling back to '-' if unassigned #}
-        <td>{{ s['full_name'] or '—' }}</td>
-
-        {# Render the scheduled shift start date and timestamp #}
-        <td>{{ s['start_time'] }}</td>
-
-        {# Render the scheduled shift expiration/end date and timestamp #}
-        <td>{{ s['end_time'] }}</td>
-
-        {# Display the specific airport terminal assignment area, falling back to '-' if unassigned #}
-        <td>{{ s['terminal'] or '—' }}</td>
-    </tr>
-    {% endfor %}
+  <tr><th>Staff</th><th>Start</th><th>End</th><th>Terminal</th></tr>
+  {% for s in shifts %}
+  <tr>
+    <td>{{ s['full_name'] or '—' }}</td>
+    <td>{{ s['start_time'] }}</td>
+    <td>{{ s['end_time'] }}</td>
+    <td>{{ s['terminal'] or '—' }}</td>
+  </tr>
+  {% endfor %}
 </table>
-{% else %}
-{# Alternative UI state: Rendered when no shift rows match the query timeline parameters #}
-<p class="empty">No shifts scheduled.</p>
-{% endif %}
+{% else %}<p class="empty">No shifts scheduled.</p>{% endif %}
 {% endblock %}

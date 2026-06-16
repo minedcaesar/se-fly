@@ -3,8 +3,6 @@
 {% block content %}
 <div class="form-card">
   <h2>My profile</h2>
-
-  <!-- profile update form -->
   <form action="{{ url_for('client.profile') }}" method="post">
     <label>Full name
       <input type="text" name="full_name" value="{{ user['full_name'] }}" required>
@@ -17,10 +15,24 @@
     </label>
     <button class="btn" type="submit">Save</button>
   </form>
-  
-  <!-- account deletion option -->
   <p class="form-footer">
     <a href="{{ url_for('auth.delete_account') }}">Delete my account</a>
   </p>
 </div>
+
+<h2>My purchases</h2>
+{% if purchases %}
+<table>
+  <tr><th>Item</th><th>Type</th><th>Price</th><th>Date</th><th>Status</th></tr>
+  {% for p in purchases %}
+  <tr>
+    <td>{{ p['name'] }}</td>
+    <td>{{ p['type'] }}</td>
+    <td>€{{ '%.2f'|format(p['price']) }}</td>
+    <td>{{ p['purchased_at'][:16] }}</td>
+    <td><span class="badge badge-{{ p['status'] }}">{{ p['status'] }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No purchases yet.</p>{% endif %}
 {% endblock %}

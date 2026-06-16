@@ -1,19 +1,6 @@
-# UC13 - See Weather
-# mock api to show the weather forecast 
-# UC14 - See Shift
-# Shows to the authorised personnel the programmed shifts
-# UC15 - Monitor Ground Environment
-# Show the ground situation to ground managers
-# UC16 - Move Aircraft
-# Allowing the personnel to move the resources
-# UC17 - Move resources
-# Reassigning personnel to different tasks as needed
-# UC18 - Plan Resources
-# Planning resources and tasks in advance
-# UC19 - Communicate Shifts 
-# Communicating shifts to the system to organise the tasks
-# UC20 - View Accountability Logs
-# Keeps track of the user that made a modification to ensure accountability
+## @file ground.py
+#  @brief Ground staff routes. UC13 weather (mock api), UC14 shifts, UC16 move aircraft
+#         UC20 accountability logs, UC15/17/18/19 are stubbed at the bottom
 
 from datetime import datetime
 
@@ -23,33 +10,33 @@ from flask import (
 
 from database.db import get_db
 from routes import role_required, reauth_required
-# Initialize a Flask Blueprint named 'ground' to compartmentalize ground operations routes under /ground
+
 bp = Blueprint('ground', __name__, url_prefix='/ground')
 
-# Tuple defining all authorization roles permitted to access ground-handling view endpoints
+## @brief Roles that may access the ground module
 GROUND_ROLES = ('ground_op_manager', 'shift_manager', 'operation_staff')
 
 
+## @brief Ground operations home page
 @bp.route('/')
-# Unpack the GROUND_ROLES tuple using '*' to pass all allowed roles to the authorization decorator
 @role_required(*GROUND_ROLES)
 def dashboard():
     return render_template('ground/dashboard.html')
 
 
-# Temporary login for operation staff
+## @brief Landing endpoint for operation staff; redirects to the dashboard
 @bp.route('/tasks')
 @role_required(*GROUND_ROLES)
 def tasks():
     return redirect(url_for('ground.dashboard'))
 
 
+## @brief Weather forecast (UC13). Mocked here; production calls WeatherForecastAPI.
 @bp.route('/weather')
 @role_required(*GROUND_ROLES)
 def weather():
     # production: WeatherForecastAPI.getWeeklyForecast() -> OpenWeatherMap.
     #   requests.get("https://api.openweathermap.org/data/2.5/forecast", params={...})
-    # mocked 5-day forecast for the deliverable:
     forecast = [
         {'day': 'Mon', 'temp': 18, 'desc': 'Clear'},
         {'day': 'Tue', 'temp': 21, 'desc': 'Sunny'},
@@ -57,38 +44,26 @@ def weather():
         {'day': 'Thu', 'temp': 17, 'desc': 'Cloudy'},
         {'day': 'Fri', 'temp': 20, 'desc': 'Clear'},
     ]
-
-    # Render the weather template interface and inject the forecast dictionary list into its scope
     return render_template('ground/weather.html', forecast=forecast)
 
+
+## @brief Shift roster (UC14)
 @bp.route('/shifts')
-# Grant access to all baseline roles defined in the GROUND_ROLES tuple via unpacking
 @role_required(*GROUND_ROLES)
 def shifts():
-
-    # Establish a connection to the active application database instance
     db = get_db()
-
-    # Query all elements from the shifts table and combine it with matching records from the users table
-    # Sorted sequentially by the upcoming start times
     rows = db.execute(
         'SELECT s.*, u.full_name FROM shifts s '
         'LEFT JOIN users u ON s.user_id = u.id ORDER BY s.start_time'
     ).fetchall()
-    # Inject the resulting array of shift records directly into the UI rendering context
     return render_template('ground/shifts.html', shifts=rows)
 
 
+## @brief Accountability log view for managers (UC20)
 @bp.route('/logs')
-# Restrict endpoint visibility to managerial operations; standard 'operation_staff' are excluded here
 @role_required('ground_op_manager', 'shift_manager')
 def accountability_logs():
-
-    # Establish a connection to the active application database instance
     db = get_db()
-
-    # Query accountability records, running dual LEFT JOIN connections against the users table 
-    # twice to distinctly bind the tracking manager's ID and the affected staff member's ID.
     logs = db.execute(
         'SELECT acl.*, m.full_name AS manager_name, s.full_name AS staff_name '
         'FROM accountability_log_entries acl '
@@ -96,89 +71,65 @@ def accountability_logs():
         'LEFT JOIN users s ON acl.staff_id = s.id '
         'ORDER BY acl.timestamp DESC'
     ).fetchall()
-
-    # Render the system logs dashboard view containing the populated management dataset
     return render_template('ground/logs.html', logs=logs)
 
-# Move an aircraft to a new gate. privileged -> needs re-auth (UC03), and writes an accountability log entry UC16
+
+## @brief Move an aircraft to a new gate (UC16). Privileged: needs re-auth (UC03) and
+#         records an accountability log entry
 @bp.route('/move-aircraft', methods=['GET', 'POST'])
-# Restrict endpoint visibility exclusively to ground operations managers
 @role_required('ground_op_manager')
-# Enforce a custom security middleware check requiring a fresh re-authentication challenge
 @reauth_required
 def move_aircraft():
-
-    # Establish a connection to the active application database instance
     db = get_db()
-
-    # Process form data only if a state mutation payload is submitted via POST
     if request.method == 'POST':
-        # Retrieve and sanitize input fields from the incoming submission form payload
         aircraft_id = request.form.get('aircraft_id')
         target_gate = request.form.get('target_gate', '').strip()
         reason = request.form.get('reason', '').strip()
-
-        # Verify that the specified aircraft exists in the system before mutating state
         ac = db.execute('SELECT * FROM aircraft WHERE id = ?', (aircraft_id,)).fetchone()
         if ac is None:
             flash('Aircraft not found.', 'danger')
             return redirect(url_for('ground.move_aircraft'))
-        
-        # Security/Operation Action 1: Mutate physical position state of the verified aircraft row
         db.execute('UPDATE aircraft SET current_position = ? WHERE id = ?',
                    (target_gate, aircraft_id))
-        
-        # Security/Operation Action 2: Write an entry to the tracking system for compliance auditing
         db.execute(
             'INSERT INTO accountability_log_entries '
             '(timestamp, manager_id, staff_id, reason_for_change) VALUES (?, ?, ?, ?)',
             (datetime.now().isoformat(), session['user_id'], session['user_id'],
-             f'Moved {ac["registration"]} to {target_gate}: {reason}'),)
-
-        # Persist both the update and structural log entries securely to the storage engine
+             f'Moved {ac["registration"]} to {target_gate}: {reason}'),
+        )
         db.commit()
-
-        # Security best practice: Revoke the temporary high-privilege token so subsequent
-        # destructive requests are forced to prompt the operator for re-authentication again.
         session.pop('reauthed', None)  # consume the re-auth
-        
         flash('Aircraft moved.', 'success')
         return redirect(url_for('ground.move_aircraft'))
-    
-    # GET Request Pipeline: Query all available airframes sequenced uniformly by registration marks
     aircraft = db.execute('SELECT * FROM aircraft ORDER BY registration').fetchall()
-
-    # Render the allocation terminal template viewport populated with the aircraft dataset
     return render_template('ground/move_aircraft.html', aircraft=aircraft)
 
 
-#############################################################################
-# The following methods are just rendering, not actual implementations
-#############################################################################
+# --- stubbed ground UCs (designed in D2, not implemented this deliverable) ---
 
+## @brief Stub: monitor ground environment (UC15)
 @bp.route('/monitor')
-# Monitoring the ground environment -> visible to all ground managers 
 @role_required(*GROUND_ROLES)
 def monitor():
     return render_template('ground/stub.html', feature='Monitor ground environment (UC15)')
 
 
+## @brief Stub: move resources (UC17)
 @bp.route('/resources')
-# Handling logistics and assets relocation -> accessible only to ground managers
 @role_required('ground_op_manager')
 def move_resources():
     return render_template('ground/stub.html', feature='Move resources (UC17)')
 
 
+## @brief Stub: plan resources (UC18)
 @bp.route('/plan')
-# Handling predictive scheduling and planning -> visible only for ground managers
 @role_required('ground_op_manager')
 def plan_resources():
     return render_template('ground/stub.html', feature='Plan resources (UC18)')
 
 
+## @brief Stub: communicate shifts (UC19)
 @bp.route('/communicate-shifts')
-# Broadcast schedule updates nd assignments to staff -> visible only for shift managers
 @role_required('shift_manager')
 def communicate_shifts():
     return render_template('ground/stub.html', feature='Communicate shifts (UC19)')

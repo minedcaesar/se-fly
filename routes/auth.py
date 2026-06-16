@@ -1,3 +1,8 @@
+## @file auth.py
+#  @brief Authentication routes.
+#  Clients log in with OAuth (Google) — mocked here, the real flow is in comments.
+#  Staff log in with email + password.
+
 import uuid
 from datetime import datetime
 
@@ -12,16 +17,22 @@ from database.db import get_db
 bp = Blueprint('auth', __name__)
 
 
+## @brief Show the client login page (UC02). Redirects logged-in users to their dashboard.
 @bp.route('/login')
 def login():
     if 'user_id' in session:
         return redirect(_dashboard_for_role(session.get('role', '')))
     return render_template('auth/login.html')
 
+
+## @brief Mock OAuth callback (UC01/UC02): find or create the client, then start a session.
+#  In production this exchanges the auth code for a token and reads the Google profile:
+#    token = requests.post("https://oauth2.googleapis.com/token", data={...}).json()
+#    profile = requests.get("https://www.googleapis.com/oauth2/v3/userinfo",
+#        headers={"Authorization": f"Bearer {token['access_token']}"}).json()
 @bp.route('/oauth/mock', methods=['POST'])
 def oauth_mock():
     email = request.form.get('email', '').strip().lower()
-    name = request.form.get('full_name', '').strip()
     if not email:
         flash('Email is required.', 'danger')
         return redirect(url_for('auth.login'))
@@ -30,29 +41,22 @@ def oauth_mock():
     user = db.execute("SELECT * FROM users WHERE email = ? AND role = 'client'",
                       (email,)).fetchone()
     if user is None:
-        if not name:
-            session['pending_oauth_email'] = email
-            return redirect(url_for('auth.register'))
-        db.execute(
-            "INSERT INTO users (role, full_name, email, oauth_token, is_active) "
-            "VALUES ('client', ?, ?, 'mock-oauth-token', 1)",
-            (name, email),
-        )
-        db.commit()
-        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        session['pending_oauth_email'] = email
+        return redirect(url_for('auth.register'))
 
     _create_session(db, user)
     return redirect(url_for('client.dashboard'))
 
 
+## @brief Collect name + date of birth for a new client (UC01).
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         email = request.form.get('email', session.pop('pending_oauth_email', '')).strip().lower()
         full_name = request.form.get('full_name', '').strip()
         dob = request.form.get('dob', '').strip()
-        if not full_name or not email:
-            flash('Name and email are required.', 'danger')
+        if not full_name or not email or not dob:
+            flash('Name, email, and date of birth are required.', 'danger')
             return render_template('auth/register.html', email=email)
 
         db = get_db()
@@ -74,6 +78,7 @@ def register():
     return render_template('auth/register.html', email=session.get('pending_oauth_email', ''))
 
 
+## @brief Staff login with email + password (UC02).
 @bp.route('/staff/login', methods=['GET', 'POST'])
 def staff_login():
     if request.method == 'POST':
@@ -94,6 +99,7 @@ def staff_login():
     return render_template('auth/staff_login.html')
 
 
+## @brief Log out (UC07): deactivate the current session row and clear the cookie.
 @bp.route('/logout', methods=['POST'])
 def logout():
     db = get_db()
@@ -105,6 +111,7 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
+## @brief Delete the account (UC08): anonymise in place (NF15) so log foreign keys stay valid.
 @bp.route('/account/delete', methods=['GET', 'POST'])
 def delete_account():
     if 'user_id' not in session:
@@ -125,6 +132,7 @@ def delete_account():
     return render_template('auth/delete_account.html')
 
 
+## @brief Re-confirm the password before a sensitive action (UC03).
 @bp.route('/reauth', methods=['GET', 'POST'])
 def reauth():
     if 'user_id' not in session:
@@ -142,6 +150,9 @@ def reauth():
     return render_template('auth/reauth.html')
 
 
+## @brief Start a session, enforcing one active session per user (NF16).
+#  @param db    Open database connection.
+#  @param user  The user row to log in.
 def _create_session(db, user):
     db.execute('UPDATE sessions SET is_active = 0 WHERE user_id = ?', (user['id'],))
     session_id = str(uuid.uuid4())
@@ -159,6 +170,9 @@ def _create_session(db, user):
     session['session_id'] = session_id
 
 
+## @brief Map a role to its landing page endpoint.
+#  @param role  Role name.
+#  @return URL of the matching dashboard.
 def _dashboard_for_role(role):
     mapping = {
         'client': 'client.dashboard',

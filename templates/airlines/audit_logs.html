@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Audit Logs{% endblock %}
+{% block content %}
+<h1>Schedule change log</h1>
+{% if logs %}
+<table>
+  <tr><th>When</th><th>Who</th><th>Flight</th><th>Action</th></tr>
+  {% for l in logs %}
+  <tr>
+    <td>{{ l['timestamp'] }}</td>
+    <td>{{ l['actor_name'] or '—' }}</td>
+    <td>{{ l['flight_id'] }}</td>
+    <td><span class="badge badge-{{ l['action_performed']|lower }}">{{ l['action_performed'] }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No changes logged yet.</p>{% endif %}
+{% endblock %}

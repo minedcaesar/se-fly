@@ -1,0 +1,15 @@
+PROJECT_NAME           = "FLY"
+PROJECT_BRIEF          = "Airport management system — Software Engineering 2026 (Mooka)"
+OUTPUT_DIRECTORY       = docs/doxygen
+INPUT                  = app.py config.py database models routes
+FILE_PATTERNS          = *.py
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+EXTRACT_PRIVATE        = YES
+JAVADOC_AUTOBRIEF      = YES
+GENERATE_LATEX         = NO
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+SOURCE_BROWSER         = YES
+QUIET                  = YES

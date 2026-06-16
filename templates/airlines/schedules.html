@@ -1,59 +1,51 @@
-{# Inherit layout structures from the parent template #}
 {% extends 'base.html' %}
-
-{# Dynamically set the page title #}
 {% block title %}Schedules{% endblock %}
-
-{# Inject the flight schedules table or empty state into the base template #}
 {% block content %}
-
-{# Header section containing the dynamic page title and action buttons #}
 <div class="page-header">
-
-    {# Display the airline's name if the 'airline' object exists in the backend context #}
-    <h1>Flight schedules{% if airline %} — {{ airline['name'] }}{% endif %}</h1>
-
-    {# Navigation link to add a new schedule #}
-    <a class="btn" href="{{ url_for('airline.add_schedule') }}">Add schedule</a>
+  <h1>Flight schedules{% if airline %} — {{ airline['name'] }}{% endif %}</h1>
+  <a class="btn" href="{{ url_for('airline.add_schedule') }}">Add schedule</a>
 </div>
-
-{# Check if any flight schedules are present in the dataset #}
 {% if schedules %}
 <table>
-    {# Table headers including the new columns for instance counts and row actions #}
-    <tr>
-        <th>Flight</th>
-        <th>Origin</th>
-        <th>Destination</th>
-        <th>Recurrence</th>
-        <th>Instances</th>
-        <th></th>
-    </tr>
-
-    {# Iterate through the list of flight schedule records #}
-    {% for s in schedules %}
-    <tr>
-        {# Display individual schedule metrics #}
-        <td>{{ s['flight_number'] }}</td>
-        <td>{{ s['origin'] }}</td>
-        <td>{{ s['destination'] }}</td>
-        <td>{{ s['recurrence_rule'] }}</td>
-        <td>{{ s['instance_count'] }}</td>
-
-        {# Action column containing a localized deletion request handler #}
-        <td>
-            {# Submits a POST request to remove this specific entry by passing its unique ID #}
-            <form action="{{ url_for('airline.delete_schedule', schedule_id=s['id']) }}" method="post">
-            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+  <tr><th>Flight</th><th>Origin</th><th>Destination</th><th>Recurrence</th><th>Departure</th><th>Arrival</th><th>Status</th><th></th></tr>
+  {% for s in schedules %}
+  {% set insts = instances.get(s['id'], []) %}
+  {% if insts %}
+  {% for inst in insts %}
+  <tr>
+    {% if loop.first %}
+    <td rowspan="{{ insts|length }}">{{ s['flight_number'] }}</td>
+    <td rowspan="{{ insts|length }}">{{ s['origin'] }}</td>
+    <td rowspan="{{ insts|length }}">{{ s['destination'] }}</td>
+    <td rowspan="{{ insts|length }}">{{ s['recurrence_rule'] }}</td>
+    {% endif %}
+    <td>{{ inst['scheduled_departure_time'] }}</td>
+    <td>{{ inst['scheduled_arrival_time'] }}</td>
+    <td><span class="badge badge-{{ inst['status']|lower }}">{{ inst['status'] }}</span></td>
+    {% if loop.first %}
+    <td rowspan="{{ insts|length }}">
+      <form action="{{ url_for('airline.delete_schedule', schedule_id=s['id']) }}" method="post">
+        <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+  {% else %}
+  <tr>
+    <td>{{ s['flight_number'] }}</td>
+    <td>{{ s['origin'] }}</td>
+    <td>{{ s['destination'] }}</td>
+    <td>{{ s['recurrence_rule'] }}</td>
+    <td colspan="3" style="color:var(--text-muted)">No instances</td>
+    <td>
+      <form action="{{ url_for('airline.delete_schedule', schedule_id=s['id']) }}" method="post">
+        <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endif %}
+  {% endfor %}
 </table>
-{% else %}
-
-{# Fallback view: Displayed when the schedules dataset is empty #}
-<p class="empty">No schedules yet.</p>
-
-{% endif %}
+{% else %}<p class="empty">No schedules yet.</p>{% endif %}
 {% endblock %}

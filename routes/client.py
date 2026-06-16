@@ -1,15 +1,21 @@
-# routes facing the clients (dashboard, airport info)
+## @file client.py
+#  @brief Client-facing routes: dashboard, airport info, flight board, amenities,
+#         assistance and profile (UC04–UC07).
 
-from flask import (Blueprint, flash, redirect, render_template, request, session, url_for, current_app)
+from datetime import datetime
+
+from flask import (
+    Blueprint, flash, redirect, render_template,
+    request, session, url_for, current_app,
+)
 
 from database.db import get_db
 from routes import login_required, role_required
 
-from datetime import datetime
-
 bp = Blueprint('client', __name__)
 
 
+## @brief Client home page.
 @bp.route('/')
 @bp.route('/dashboard')
 @login_required
@@ -17,6 +23,7 @@ def dashboard():
     return render_template('client/dashboard.html')
 
 
+## @brief Public airport information page (UC04): map, parking, regulations.
 @bp.route('/info')
 def info():
     db = get_db()
@@ -25,6 +32,7 @@ def info():
     return render_template('client/info.html', content=content)
 
 
+## @brief Public flight board (UC04): departures and arrivals for this airport.
 @bp.route('/flights')
 def flights():
     db = get_db()
@@ -42,6 +50,8 @@ def flights():
     return render_template('client/flights.html', departures=departures, arrivals=arrivals)
 
 
+## @brief List amenities and start a purchase (UC05).
+#  GET lists active amenities; POST records a pending purchase and goes to mock payment.
 @bp.route('/amenities', methods=['GET', 'POST'])
 @login_required
 @role_required('client')
@@ -60,12 +70,13 @@ def amenities():
             (session['user_id'], amenity_id, 'pending', datetime.now().isoformat()),
         )
         db.commit()
-        # hands off to payment provider, then redirects to url
+        # production: hand off to PaymentProvider.processTransaction(...) and redirect to its url.
         return redirect(url_for('client.mock_payment', amenity_id=amenity_id))
     items = db.execute('SELECT * FROM amenities WHERE is_active = 1').fetchall()
     return render_template('client/amenities.html', amenities=items)
 
 
+## @brief Mock payment confirmation: flip the pending purchase to confirmed (UC05).
 @bp.route('/mock-payment')
 @login_required
 def mock_payment():
@@ -82,6 +93,7 @@ def mock_payment():
     return redirect(url_for('client.amenities'))
 
 
+## @brief Submit a special-assistance request (UC06).
 @bp.route('/assistance', methods=['GET', 'POST'])
 @login_required
 @role_required('client')
@@ -93,6 +105,11 @@ def assistance():
             flash('All fields are required.', 'danger')
             return redirect(url_for('client.assistance'))
         db = get_db()
+        if not db.execute(
+            'SELECT 1 FROM flight_schedules WHERE flight_number = ?', (flight_num,)
+        ).fetchone():
+            flash('Flight number not found.', 'danger')
+            return redirect(url_for('client.assistance'))
         db.execute(
             'INSERT INTO assistance_requests (user_id, type, flight_num, is_fulfilled, created_at) '
             'VALUES (?, ?, ?, 0, ?)',
@@ -101,10 +118,17 @@ def assistance():
         db.commit()
         flash('Assistance request submitted.', 'success')
         return redirect(url_for('client.dashboard'))
+    db = get_db()
+    flights = db.execute(
+        'SELECT DISTINCT fs.flight_number FROM flight_schedules fs '
+        'JOIN flight_instances fi ON fi.schedule_id = fs.id '
+        'ORDER BY fs.flight_number'
+    ).fetchall()
     types = ['WheelchairService', 'PriorityBoarding', 'UnaccompaniedMinor']
-    return render_template('client/assistance.html', assistance_types=types)
+    return render_template('client/assistance.html', assistance_types=types, flights=flights)
 
 
+## @brief View and edit the client's profile (UC07).
 @bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 @role_required('client')
@@ -123,4 +147,10 @@ def profile():
         flash('Profile updated.', 'success')
         return redirect(url_for('client.profile'))
     user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    return render_template('client/profile.html', user=user)
+    purchases = db.execute(
+        'SELECT ap.*, a.name, a.type, a.price '
+        'FROM amenity_purchases ap JOIN amenities a ON ap.amenity_id = a.id '
+        'WHERE ap.user_id = ? ORDER BY ap.purchased_at DESC',
+        (session['user_id'],),
+    ).fetchall()
+    return render_template('client/profile.html', user=user, purchases=purchases)

@@ -4,4 +4,4 @@ __pycache__/
 .venv/
 venv/
 instance/
-*.txt
+docs/doxygen/

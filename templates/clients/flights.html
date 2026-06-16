@@ -4,8 +4,6 @@
 <h1>Flight board</h1>
 
 <h2>Departures</h2>
-
-<!-- departures flight board -->
 {% if departures %}
 <table>
   <tr><th>Flight</th><th>To</th><th>Scheduled</th><th>Status</th></tr>
@@ -21,8 +19,6 @@
 {% else %}<p class="empty">No departures.</p>{% endif %}
 
 <h2>Arrivals</h2>
-
-<!-- arrivals flight board -->
 {% if arrivals %}
 <table>
   <tr><th>Flight</th><th>From</th><th>Scheduled</th><th>Status</th></tr>

@@ -2,8 +2,6 @@
 {% block title %}Home{% endblock %}
 {% block content %}
 <h1>Welcome, {{ session.full_name }}</h1>
-
-<!-- quick access to client services -->
 <div class="card-grid">
   <a class="card" href="{{ url_for('client.flights') }}"><h3>Flights</h3><p>Live departures & arrivals.</p></a>
   <a class="card" href="{{ url_for('client.info') }}"><h3>Airport Info</h3><p>Map, parking, regulations.</p></a>

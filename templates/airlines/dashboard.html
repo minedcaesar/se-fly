@@ -1,29 +1,11 @@
-{# Inherit the layout structures (like navigation, header, and footer) from the parent template #}
 {% extends 'base.html' %}
-
-{# Dynamically set the page title #}
 {% block title %}Airline Home{% endblock %}
-
-{# Inject the main dashboard elements into the 'content' block of the base template #}
 {% block content %}
-
-{# Container for the dashboard action buttons styled as a grid #}
 <h1>Airline staff</h1>
 <div class="card-grid">
-
-    {# General access card: Accessible by all authenticated airline staff #}
-    <a class="card" href="{{ url_for('airline.schedules') }}">
-        <h3>Schedules</h3>
-        <p>View and manage flights.</p>
-    </a>
-
-    {# Access-controlled section: Only render this card if the user's session role is specifically 'airline_manager' #}
-    {% if session.role == 'airline_manager' %}
-    <a class="card" href="{{ url_for('airline.audit_logs') }}">
-        <h3>Audit logs</h3>
-        <p>Schedule change history.</p>
-    </a>
-    {% endif %}
+  <a class="card" href="{{ url_for('airline.schedules') }}"><h3>Schedules</h3><p>View and manage flights.</p></a>
+  {% if session.role == 'airline_manager' %}
+  <a class="card" href="{{ url_for('airline.audit_logs') }}"><h3>Audit logs</h3><p>Schedule change history.</p></a>
+  {% endif %}
 </div>
-
 {% endblock %}

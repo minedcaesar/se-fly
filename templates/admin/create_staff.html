@@ -3,31 +3,35 @@
 {% block content %}
 <div class="form-card">
   <h2>Create staff account</h2>
-
-  <!-- staff account creation form -->
   <form action="{{ url_for('admin.create_staff') }}" method="post">
     <label>Full name <input type="text" name="full_name" required></label>
     <label>Email <input type="email" name="email" required></label>
     <label>Temporary password <input type="text" name="password" required></label>
-    
-    <!-- available staff roles -->
     <label>Role
-      <select name="role" required>
+      <select name="role" id="role-select" required onchange="updateFields()">
         {% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
       </select>
     </label>
-    
-    <!-- airline assignment for airline-related roles -->
-    <label>Airline (airline staff only)
+    <label id="field-airline" style="display:none">Airline
       <input type="text" name="airline" list="airline-list">
       <datalist id="airline-list">
         {% for a in airlines %}<option value="{{ a['name'] }}">{% endfor %}
       </datalist>
     </label>
-    
-    <!-- terminal assignment for ground staff -->
-    <label>Terminal (ground staff only) <input type="text" name="terminal"></label>
+    <label id="field-terminal" style="display:none">Terminal
+      <input type="text" name="terminal">
+    </label>
     <button class="btn" type="submit">Create</button>
   </form>
 </div>
+<script>
+  const AIRLINE_ROLES = ['airline_staff', 'airline_manager'];
+  const GROUND_ROLES  = ['ground_op_manager', 'shift_manager', 'operation_staff'];
+  function updateFields() {
+    const role = document.getElementById('role-select').value;
+    document.getElementById('field-airline').style.display  = AIRLINE_ROLES.includes(role) ? '' : 'none';
+    document.getElementById('field-terminal').style.display = GROUND_ROLES.includes(role)  ? '' : 'none';
+  }
+  updateFields();
+</script>
 {% endblock %}

@@ -4,12 +4,11 @@
 <div class="form-card">
   <h2>Log in</h2>
 
+  <!-- In production this is a "Sign in with Google" button that redirects to the
+       OAuth consent screen. For the deliverable it's mocked with a plain form. -->
   <form action="{{ url_for('auth.oauth_mock') }}" method="post">
     <label>Email
       <input type="email" name="email" required>
-    </label>
-    <label>Name (first time only)
-      <input type="text" name="full_name">
     </label>
     <button class="btn" type="submit">Continue with Google (mock)</button>
   </form>
@@ -19,4 +18,3 @@
   </p>
 </div>
 {% endblock %}
-

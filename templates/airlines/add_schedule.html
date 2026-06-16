@@ -1,42 +1,30 @@
-{# Inherit layout structures (like global navigation and footer) from the parent template #}
 {% extends 'base.html' %}
-
-{# Dynamically set the page title #}
 {% block title %}Add Schedule{% endblock %}
-
-{# Inject the form into the main content block of the base layout #}
 {% block content %}
 <div class="form-card">
-<h2>Add flight schedule</h2>
-
-    {# Form submits data via a POST request back to the 'airline.add_schedule' routing endpoint #}
-    <form action="{{ url_for('airline.add_schedule') }}" method="post">
-        {# Input field for the standard airline/flight designation #}
-        <label>Flight number
-            <input type="text" name="flight_number" placeholder="AZ123" required>
-        </label>
-
-        {# Input field for the 3-letter departure airport code #}
-        <label>Origin (IATA)
-            <input type="text" name="origin" placeholder="TN" required>
-        </label>
-
-        {# Input field for the 3-letter arrival airport code #}
-        <label>Destination (IATA)
-            <input type="text" name="destination" placeholder="FCO" required>
-        </label>
-
-        {# Input field for the 3-letter arrival airport code #}
-        <label>Recurrence
-            <select name="recurrence_rule">
-            {% for r in recurrence_options %}
-                <option value="{{ r }}">{{ r }}</option>
-            {% endfor %}
-            </select>
-        </label>
-
-    {# Submission button that triggers the browser's native form validation and sends the payload #}
+  <h2>Add flight schedule</h2>
+  <form action="{{ url_for('airline.add_schedule') }}" method="post">
+    <label>Flight number
+      <input type="text" name="flight_number" placeholder="AZ123" required>
+    </label>
+    <label>Origin (IATA)
+      <input type="text" name="origin" placeholder="TN" required>
+    </label>
+    <label>Destination (IATA)
+      <input type="text" name="destination" placeholder="FCO" required>
+    </label>
+    <label>Recurrence
+      <select name="recurrence_rule">
+        {% for r in recurrence_options %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Departure date &amp; time
+      <input type="datetime-local" name="departure_datetime" required>
+    </label>
+    <label>Arrival date &amp; time
+      <input type="datetime-local" name="arrival_datetime" required>
+    </label>
     <button class="btn" type="submit">Add</button>
-    </form>
+  </form>
 </div>
 {% endblock %}
