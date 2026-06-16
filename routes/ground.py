@@ -7,10 +7,14 @@
 # UC20 - View Accountability Logs
 # Keeps track of the user that made a modification to ensure accountability
 
-from flask import Blueprint, redirect, render_template, url_for
+from datetime import datetime
+
+from flask import (
+    Blueprint, flash, redirect, render_template, request, session, url_for,
+)
 
 from database.db import get_db
-from routes import role_required
+from routes import role_required, reauth_required
 
 # Initialize a Flask Blueprint named 'ground' to compartmentalize ground operations routes under /ground
 bp = Blueprint('ground', __name__, url_prefix='/ground')
@@ -88,3 +92,58 @@ def accountability_logs():
 
     # Render the system logs dashboard view containing the populated management dataset
     return render_template('ground/logs.html', logs=logs)
+
+# Move an aircraft to a new gate. privileged -> needs re-auth (UC03), and writes an accountability log entry UC16
+@bp.route('/move-aircraft', methods=['GET', 'POST'])
+# Restrict endpoint visibility exclusively to ground operations managers
+@role_required('ground_op_manager')
+# Enforce a custom security middleware check requiring a fresh re-authentication challenge
+@reauth_required
+def move_aircraft():
+
+    # Establish a connection to the active application database instance
+    db = get_db()
+
+    # Process form data only if a state mutation payload is submitted via POST
+    if request.method == 'POST':
+        # Retrieve and sanitize input fields from the incoming submission form payload
+        aircraft_id = request.form.get('aircraft_id')
+        target_gate = request.form.get('target_gate', '').strip()
+        reason = request.form.get('reason', '').strip()
+
+        # Verify that the specified aircraft exists in the system before mutating state
+        ac = db.execute('SELECT * FROM aircraft WHERE id = ?', (aircraft_id,)).fetchone()
+        if ac is None:
+            flash('Aircraft not found.', 'danger')
+            return redirect(url_for('ground.move_aircraft'))
+        
+        # Security/Operation Action 1: Mutate physical position state of the verified aircraft row
+        db.execute('UPDATE aircraft SET current_position = ? WHERE id = ?',
+                   (target_gate, aircraft_id))
+        
+        # Security/Operation Action 2: Write an entry to the tracking system for compliance auditing
+        db.execute(
+            'INSERT INTO accountability_log_entries '
+            '(timestamp, manager_id, staff_id, reason_for_change) VALUES (?, ?, ?, ?)',
+            (
+                datetime.now().isoformat(), 
+                session['user_id'],                                         # The validating manager logged in who signed off
+            session['user_id'],                                             # The executing staff profile processing the action
+                f'Moved {ac["registration"]} to {target_gate}: {reason}')   # Context audit string
+        )
+
+        # Persist both the update and structural log entries securely to the storage engine
+        db.commit()
+
+        # Security best practice: Revoke the temporary high-privilege token so subsequent
+        # destructive requests are forced to prompt the operator for re-authentication again.
+        session.pop('reauthed', None)  # consume the re-auth
+        
+        flash('Aircraft moved.', 'success')
+        return redirect(url_for('ground.move_aircraft'))
+    
+    # GET Request Pipeline: Query all available airframes sequenced uniformly by registration marks
+    aircraft = db.execute('SELECT * FROM aircraft ORDER BY registration').fetchall()
+
+    # Render the allocation terminal template viewport populated with the aircraft dataset
+    return render_template('ground/move_aircraft.html', aircraft=aircraft)

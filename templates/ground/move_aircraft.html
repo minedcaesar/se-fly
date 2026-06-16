@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Move Aircraft{% endblock %}
+{% block content %}
+<div class="form-card">
+<h2>Move aircraft</h2>
+    <form action="{{ url_for('ground.move_aircraft') }}" method="post">
+
+    <label>Aircraft
+        <select name="aircraft_id" required>
+        {% for a in aircraft %}
+        <option value="{{ a['id'] }}">{{ a['registration'] }} ({{ a['model'] }}) — at {{ a['current_position'] or 'n/a' }}</option>
+        {% endfor %}
+        </select>
+    </label>
+
+    <label>Target gate 
+        <input type="text" name="target_gate" required>
+    </label>
+
+    <label>Reason 
+        <input type="text" name="reason">
+    </label>
+    
+    <button class="btn" type="submit">Move</button>
+    </form>
+</div>
+{% endblock %}
