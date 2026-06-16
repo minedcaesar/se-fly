@@ -1,18 +1,28 @@
+{# Inherit layout structures (like global navigation and CSS bundles) from the base template #}
 {% extends 'base.html' %}
+
+{# Dynamically set the browser tab title #}
 {% block title %}Ground Home{% endblock %}
+
+{# Inject the dashboard interface grid into the main layout block #}
 {% block content %}
 <h1>Ground operations</h1>
+
+{# Main layout grid container holding functional navigation link cards #}
 <div class="card-grid">
+    {# General access card: Accessible by all ground operations roles #}
     <a class="card" href="{{ url_for('ground.weather') }}">
         <h3>Weather</h3>
         <p>5-day forecast.</p>
     </a>
     
+    {# General access card: Accessible by all ground operations roles #}
     <a class="card" href="{{ url_for('ground.shifts') }}">
         <h3>Shifts</h3>
         <p>Roster.</p>
     </a>
     
+    {# Supervisory Access Control: Rendered exclusively for managerial roles #}
     {% if session.role in ('ground_op_manager', 'shift_manager') %}
     <a class="card" href="{{ url_for('ground.accountability_logs') }}">
         <h3>Accountability logs</h3>
@@ -20,6 +30,7 @@
     </a>
     {% endif %}
     
+    {# Exec-Level Access Control: Restrict gate mutation operations strictly to high-level operations managers #}
     {% if session.role == 'ground_op_manager' %}
     <a class="card" href="{{ url_for('ground.move_aircraft') }}">
         <h3>Move aircraft</h3>

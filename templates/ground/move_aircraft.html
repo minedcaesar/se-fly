@@ -1,27 +1,40 @@
+{# Inherit standard layout components from the core base template #}
 {% extends 'base.html' %}
+
+{# Dynamically assign the browser tab title for this administrative view #}
 {% block title %}Move Aircraft{% endblock %}
+
+{# Inject the template elements into the primary content region #}
 {% block content %}
 <div class="form-card">
-<h2>Move aircraft</h2>
+    <h2>Move aircraft</h2>
+
+    {# Mutation form submitting the gate relocation payload via a POST request to the backend route #}
     <form action="{{ url_for('ground.move_aircraft') }}" method="post">
 
-    <label>Aircraft
-        <select name="aircraft_id" required>
-        {% for a in aircraft %}
-        <option value="{{ a['id'] }}">{{ a['registration'] }} ({{ a['model'] }}) — at {{ a['current_position'] or 'n/a' }}</option>
-        {% endfor %}
-        </select>
-    </label>
+        {# Dropdown Selection Container for targeted airframe validation #}
+        <label>Aircraft
+            <select name="aircraft_id" required>
+            {# Iterating through the collection of available aircraft passed from the view controller #}
+            {% for a in aircraft %}
+            {# Value binds to the unique row ID, text reveals registration, model variant, and location status #}
+            <option value="{{ a['id'] }}">{{ a['registration'] }} ({{ a['model'] }}) — at {{ a['current_position'] or 'n/a' }}</option>
+            {% endfor %}
+            </select>
+        </label>
 
-    <label>Target gate 
-        <input type="text" name="target_gate" required>
-    </label>
+        {# Input field capturing the designated destination terminal or airfield location #}
+        <label>Target gate 
+            <input type="text" name="target_gate" required>
+        </label>
 
-    <label>Reason 
-        <input type="text" name="reason">
-    </label>
-    
-    <button class="btn" type="submit">Move</button>
+        {# Text payload field collecting administrative tracking reasons for auditing #}
+        <label>Reason 
+            <input type="text" name="reason">
+        </label>
+        
+        {# Submission button committing the structural form values to the database routine #}
+        <button class="btn" type="submit">Move</button>
     </form>
 </div>
 {% endblock %}

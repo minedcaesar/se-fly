@@ -2,8 +2,16 @@
 # mock api to show the weather forecast 
 # UC14 - See Shift
 # Shows to the authorised personnel the programmed shifts
+# UC15 - Monitor Ground Environment
+# Show the ground situation to ground managers
 # UC16 - Move Aircraft
 # Allowing the personnel to move the resources
+# UC17 - Move resources
+# Reassigning personnel to different tasks as needed
+# UC18 - Plan Resources
+# Planning resources and tasks in advance
+# UC19 - Communicate Ahifts 
+# Communicating shifts to the system to organise the tasks
 # UC20 - View Accountability Logs
 # Keeps track of the user that made a modification to ensure accountability
 
@@ -15,7 +23,6 @@ from flask import (
 
 from database.db import get_db
 from routes import role_required, reauth_required
-
 # Initialize a Flask Blueprint named 'ground' to compartmentalize ground operations routes under /ground
 bp = Blueprint('ground', __name__, url_prefix='/ground')
 
@@ -125,12 +132,8 @@ def move_aircraft():
         db.execute(
             'INSERT INTO accountability_log_entries '
             '(timestamp, manager_id, staff_id, reason_for_change) VALUES (?, ?, ?, ?)',
-            (
-                datetime.now().isoformat(), 
-                session['user_id'],                                         # The validating manager logged in who signed off
-            session['user_id'],                                             # The executing staff profile processing the action
-                f'Moved {ac["registration"]} to {target_gate}: {reason}')   # Context audit string
-        )
+            (datetime.now().isoformat(), session['user_id'], session['user_id'],
+             f'Moved {ac["registration"]} to {target_gate}: {reason}'),)
 
         # Persist both the update and structural log entries securely to the storage engine
         db.commit()
@@ -147,3 +150,35 @@ def move_aircraft():
 
     # Render the allocation terminal template viewport populated with the aircraft dataset
     return render_template('ground/move_aircraft.html', aircraft=aircraft)
+
+
+#############################################################################
+# The following methods are just rendering, not actual implementations
+#############################################################################
+
+@bp.route('/monitor')
+# Monitoring the ground environment -> visible to all ground managers 
+@role_required(*GROUND_ROLES)
+def monitor():
+    return render_template('ground/stub.html', feature='Monitor ground environment (UC15)')
+
+
+@bp.route('/resources')
+# Handling logistics and assets relocation -> accessible only to ground managers
+@role_required('ground_op_manager')
+def move_resources():
+    return render_template('ground/stub.html', feature='Move resources (UC17)')
+
+
+@bp.route('/plan')
+# Handling predictive scheduling and planning -> visible only for ground managers
+@role_required('ground_op_manager')
+def plan_resources():
+    return render_template('ground/stub.html', feature='Plan resources (UC18)')
+
+
+@bp.route('/communicate-shifts')
+# Broadcast schedule updates nd assignments to staff -> visible only for shift managers
+@role_required('shift_manager')
+def communicate_shifts():
+    return render_template('ground/stub.html', feature='Communicate shifts (UC19)')
