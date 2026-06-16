@@ -20,6 +20,8 @@ class SystemLogEntry(ABC):
 class AuditLogEntry(SystemLogEntry):
 
     ## @brief Build an audit entry.
+    #  @param log_entry_id     Unique identifier of the entry.
+    #  @param timestamp        When the logged event happened.
     #  @param user_id          Staff member who performed the action.
     #  @param flight_id        Flight number affected.
     #  @param action_performed Action, e.g. "ADDED" or "DELETED".
@@ -35,6 +37,8 @@ class AuditLogEntry(SystemLogEntry):
 class AccountabilityLogEntry(SystemLogEntry):
 
     ## @brief Build an accountability entry.
+    #  @param log_entry_id      Unique identifier of the entry.
+    #  @param timestamp         When the logged event happened.
     #  @param manager_id        Manager responsible for the decision.
     #  @param staff_id          Staff member affected.
     #  @param reason_for_change Justification text.

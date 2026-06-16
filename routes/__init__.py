@@ -19,7 +19,7 @@ def login_required(f):
 
 ## @brief Restrict a view to one or more roles
 #  @param roles  Allowed role names
-#  Usage: @role_required('admin') or @role_required('airline_staff', 'airline_manager')
+#  Usage: role_required('admin') or role_required('airline_staff', 'airline_manager')
 def role_required(*roles):
     def decorator(f):
         @wraps(f)

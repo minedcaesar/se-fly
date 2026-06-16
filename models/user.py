@@ -134,6 +134,11 @@ class Staff(User, ABC):
 class AirlineStaff(Staff, ABC):
 
     ## @brief Build an airline staff member.
+    #  @param user_id       Unique identifier.
+    #  @param employee_id   Employee number.
+    #  @param full_name     Full name.
+    #  @param email         Work email.
+    #  @param department    Department.
     #  @param airline_name  Airline they work for.
     def __init__(self, user_id: int, employee_id: int, full_name: str,
                  email: str, department: str, airline_name: str):
@@ -180,6 +185,11 @@ class AirlineManager(AirlineStaff):
 class GroundStaff(Staff, ABC):
 
     ## @brief Build a ground staff member.
+    #  @param user_id            Unique identifier.
+    #  @param employee_id        Employee number.
+    #  @param full_name          Full name.
+    #  @param email              Work email.
+    #  @param department         Department.
     #  @param assigned_terminal  Terminal they work in.
     def __init__(self, user_id: int, employee_id: int, full_name: str,
                  email: str, department: str, assigned_terminal: str):
