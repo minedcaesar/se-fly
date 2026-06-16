@@ -16,7 +16,6 @@ bp = Blueprint('client', __name__)
 
 
 ## @brief Client home page.
-@bp.route('/')
 @bp.route('/dashboard')
 @login_required
 def dashboard():

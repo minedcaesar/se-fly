@@ -17,6 +17,14 @@ from database.db import get_db
 bp = Blueprint('auth', __name__)
 
 
+## @brief Root redirect: send logged-in users to their role dashboard, others to login.
+@bp.route('/')
+def home():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    return redirect(_dashboard_for_role(session.get('role', '')))
+
+
 ## @brief Show the client login page (UC02). Redirects logged-in users to their dashboard.
 @bp.route('/login')
 def login():
