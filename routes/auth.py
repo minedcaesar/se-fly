@@ -81,6 +81,8 @@ def register():
 ## @brief Staff login with email + password (UC02).
 @bp.route('/staff/login', methods=['GET', 'POST'])
 def staff_login():
+    if 'user_id' in session:
+        return redirect(_dashboard_for_role(session.get('role', '')))
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
