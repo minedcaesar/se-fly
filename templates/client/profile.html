@@ -8,7 +8,7 @@
       <input type="text" name="full_name" value="{{ user['full_name'] }}" required>
     </label>
     <label>Date of birth
-      <input type="date" name="dob" value="{{ user['dob'] or '' }}">
+      <input type="date" name="dob" value="{{ user['dob'] or '' }}" required>
     </label>
     <label>Email
       <input type="email" value="{{ user['email'] }}" disabled>

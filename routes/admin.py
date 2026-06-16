@@ -56,6 +56,8 @@ def create_staff():
 
         AIRLINE_ROLES = {'airline_staff', 'airline_manager'}
         GROUND_ROLES = {'ground_op_manager', 'shift_manager', 'operation_staff'}
+        if error is None and role in AIRLINE_ROLES and not airline:
+            error = 'Airline is required for airline roles.'
         if error is None:
             db.execute(
                 'INSERT INTO users (role, full_name, email, password, airline, terminal, is_active) '

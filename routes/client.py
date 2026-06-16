@@ -22,8 +22,9 @@ def dashboard():
     return render_template('client/dashboard.html')
 
 
-## @brief Public airport information page (UC04): map, parking, regulations.
+## @brief Airport information page (UC04): map, parking, regulations.
 @bp.route('/info')
+@login_required
 def info():
     db = get_db()
     rows = db.execute('SELECT key, content, content_type FROM airport_content').fetchall()
@@ -31,8 +32,9 @@ def info():
     return render_template('client/info.html', content=content)
 
 
-## @brief Public flight board (UC04): departures and arrivals for this airport.
+## @brief Flight board (UC04): departures and arrivals for this airport.
 @bp.route('/flights')
+@login_required
 def flights():
     db = get_db()
     iata = current_app.config['AIRPORT_IATA_CODE']
@@ -136,8 +138,8 @@ def profile():
     if request.method == 'POST':
         full_name = request.form.get('full_name', '').strip()
         dob = request.form.get('dob', '').strip()
-        if not full_name:
-            flash('Name cannot be empty.', 'danger')
+        if not full_name or not dob:
+            flash('Name and date of birth are required.', 'danger')
             return redirect(url_for('client.profile'))
         db.execute('UPDATE users SET full_name = ?, dob = ? WHERE id = ?',
                    (full_name, dob, session['user_id']))
